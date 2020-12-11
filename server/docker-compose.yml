@@ -1,0 +1,88 @@
+version: '3'
+services:
+
+    #PHP Service asis cores
+    appBWFA:
+      build:
+        context: .
+        dockerfile: Dockerfile
+      image: php_service
+      container_name: appBWFA
+      restart: unless-stopped
+      tty: true
+      environment:
+        SERVICE_NAME: appBWFA
+        SERVICE_TAGS: dev
+      working_dir: /var/www
+      links:
+        - dbBWFA
+      volumes:
+        - ../public/:/var/www
+        - ./php/conf.d:/usr/local/etc/php/conf.d
+        - "./home:/home"
+      networks:
+        - netBWFA
+
+    #Nginx Service asis cores
+    webBWFA:
+      image: nginx:alpine
+      container_name: webBWFA
+      restart: unless-stopped
+      tty: true
+      working_dir: /
+      ports:
+        - "80:80"
+      volumes:
+        - ../public/:/var/www
+        - ./nginx/conf.d/:/etc/nginx/conf.d/
+      networks:
+        - netBWFA
+
+    #MySQL Service
+    dbBWFA:
+      image: mysql
+      container_name: dbBWFA
+      restart: unless-stopped
+      tty: true
+      ports:
+        - "33069:3306"
+      environment:
+        MYSQL_DATABASE: bwfood
+        MYSQL_USER: shayasmin
+        MYSQL_PASSWORD: root
+        MYSQL_ROOT_PASSWORD: root
+        SERVICE_TAGS: dev
+        SERVICE_NAME: mysql
+      volumes:
+       - "./mysql/data:/var/lib/mysql:rw"
+       - "./home:/home"
+      networks:
+        - netBWFA
+
+    #PHPMyAdmin Service
+    phpBWFA:
+      container_name: phpBWFA
+      image: phpmyadmin/phpmyadmin
+      ports:
+        - "8080:80"
+      links:
+        - dbBWFA
+      environment:
+        PMA_HOST: dbBWFA
+        UPLOAD_LIMIT: 3000000000
+      networks:
+        - netBWFA
+
+
+#Docker Networks
+networks:
+  netBWFA:
+    driver: bridge
+    ipam:
+      config:
+        - subnet: 172.16.10.0/24
+
+#Volumes
+volumes:
+  volBWFA:
+    driver: local
