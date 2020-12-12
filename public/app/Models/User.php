@@ -2,6 +2,7 @@
 
 namespace App\Models;
 
+use Carbon\Carbon;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Foundation\Auth\User as Authenticatable;
 use Illuminate\Notifications\Notifiable;
@@ -26,6 +27,11 @@ class User extends Authenticatable
      */
     protected $fillable = [
         'name', 'email', 'password',
+        'address',
+        'houseNumber',
+        'phoneNumber',
+        'city',
+        'roles',
     ];
 
     /**
@@ -57,4 +63,15 @@ class User extends Authenticatable
     protected $appends = [
         'profile_photo_url',
     ];
+
+    public function getCreatedAtAttribute($created_at)
+    {
+        return Carbon::parse($created_at)
+            ->getPreciseTimestamp(3);
+    }
+    public function getUpdatedAtAttribute($updated_at)
+    {
+        return Carbon::parse($updated_at)
+            ->getPreciseTimestamp(3);
+    }
 }
